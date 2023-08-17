@@ -54,6 +54,36 @@ export const addNewPost = createAsyncThunk(
     }
 );
 
+export const updatePost = createAsyncThunk(
+    "posts/updatePost",
+    async (postToEdit) => {
+        const { id } = postToEdit;
+        try {
+            const response = await axios.put(`${POSTS_URL}/${id}`, postToEdit);
+            return response.error;
+        } catch (error) {
+            return postToEdit;
+        }
+    }
+);
+
+export const deletePost = createAsyncThunk(
+    "posts/deletePost",
+    async (postToDelete) => {
+        const { id } = postToDelete;
+        try {
+            const response = await axios.delete(
+                `${POSTS_URL}/${id}`,
+                postToDelete
+            );
+            if (response.status === 200) return postToDelete;
+            return `${response?.status}: ${response?.statusText}`;
+        } catch (error) {
+            return error.message;
+        }
+    }
+);
+
 const postsSlice = createSlice({
     name: "posts",
     initialState,
@@ -134,6 +164,27 @@ const postsSlice = createSlice({
                     eyes: 0,
                 };
                 state.posts.push(action.payload);
+            })
+            .addCase(updatePost.fulfilled, (state, action) => {
+                if (!action.payload?.id) {
+                    console.log("Update could not complete");
+                    console.log(action.payload);
+                    return;
+                }
+                const { id } = action.payload;
+                action.payload.date = new Date().toISOString();
+                const posts = state.posts.filter((post) => post.id !== id);
+                state.posts = [...posts, action.payload];
+            })
+            .addCase(deletePost.fulfilled, (state, action) => {
+                if (!action.payload?.id) {
+                    console.log("Delete could not complete");
+                    console.log(action.payload);
+                    return;
+                }
+                const { id } = action.payload;
+                const posts = state.posts.filter((post) => post.id !== id);
+                state.posts = posts;
             });
     },
 });
@@ -141,6 +192,9 @@ const postsSlice = createSlice({
 export const getAllPosts = (state) => state.posts.posts;
 export const getPostStatus = (state) => state.posts.status;
 export const getPostError = (state) => state.posts.error;
+
+export const selectPostById = (state, postId) =>
+    state.posts.posts.find((post) => post.id === Number(postId));
 
 export const { postAdded, reactionAdded } = postsSlice.actions;
 
