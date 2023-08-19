@@ -3,9 +3,12 @@ import ReactionButtons from "./ReactionsButton";
 import TimeAgo from "./TimeAgo";
 import Author from "./Author";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectPostById } from "./postsSlice";
 
 // eslint-disable-next-line react/prop-types
-const PostListItem = ({ post }) => {
+const PostListItem = ({ postId }) => {
+    const post = useSelector((state) => selectPostById(state, postId));
     return (
         <article>
             <h2>{post.title}</h2>
